@@ -240,20 +240,20 @@ import { ref, reactive, watch } from "vue";
 import { uniquieId } from "./uniqueID";
 
 import noTasksIcon from "../assets/tumbleIcon.png";
-import { getAllTodos } from "../../../components/getAllTodos";
-import { postTodoData } from "../../../components/addTodo";
+import { getAllTodos } from "./getAllTodos";
+import { postTodoData } from "./addTodo";
 import loader from "../assets/loader.gif";
 // commenting to trigger vercel deployment
 const todoList = ref({
-  todos: "",
+  todos: await getAllTodos(),
 });
-await getAllTodos()
-  .then((data) => {
-    todoList.value.todos = data;
-  })
-  .catch((error) => {
-    console.log(error);
-  });
+// await getAllTodos()
+//   .then((data) => {
+//     todoList.value.todos = data;
+//   })
+//   .catch((error) => {
+//     console.log(error);
+//   });
 const loaderActive = ref(false);
 const emits = defineEmits(["openBlurBg", "deleteTask"]);
 const props = defineProps({
