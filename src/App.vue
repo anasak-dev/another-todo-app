@@ -61,31 +61,32 @@ setInterval(() => {
         <template #default>
           <ShowAllTodos
             @open-blur-bg="blurbg"
+            :latest-todos="latestTodos"
             @delete-task="(id) => openDeleteTaskModal(id)"
             :deleteTodo="deleteTask"
           />
         </template>
         <template #fallback>
           <div
-            class="loader flex items-center justify-center w-full h-full bg-black/80 backdrop-blur-sm top-0 left-0 z-10 fixed"
+            class="loader flex items-center justify-center w-full h-full top-0 left-0 z-10 fixed"
           >
             <div
               class="z-10 bg-white flex flex-col max-w-[320px] rounded-md overflow-hidden transition"
             >
               <div
-                class="bg-gray-100 px-6 py-6 flex flex-col justify-center items-center"
+                class="bg-gray-100 px-6 py-6 flex flex-col gap-1 justify-center items-center"
               >
                 <h4 class="text-2xl text-center font-bold">
                   Loading your tasks
                 </h4>
-                <p>Have some facts while you wait</p>
+                <p class="text-sm">Have some facts while you wait</p>
               </div>
               <div class="flex flex-col overflow-hidden px-4 py-4">
                 <TransitionGroup mode="out-in" name="fromBottom">
                   <div v-for="(fact, index) in facts" :key="index">
                     <li
                       v-if="index == currentFact"
-                      class="list-none text-center"
+                      class="list-none text-center text-sm"
                     >
                       {{ fact }}
                     </li>
@@ -102,27 +103,46 @@ setInterval(() => {
 <script>
 import { ref } from "vue";
 import ShowAllTodos from "./components/showAllTodos.vue";
-import { todoList } from "./components/todos";
-
+import { getAllTodos } from "../../components/getAllTodos";
 const deleteTaskConfirmation = ref(false);
 const deleteTask = ref(false);
 const deleteTodoId = ref("");
 const blurredBg = ref(false);
-
+const deleteTodo = await ((todoId) =>
+  fetch(`/api/deleteTodo`, {
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    method: "post",
+    body: JSON.stringify({ id: todoId }),
+  }));
 const openDeleteTaskModal = (id) => {
   deleteTaskConfirmation.value = true;
   deleteTodoId.value = id;
 };
-const deleteTaskConfirm = () => {
-  const index = todoList.value.todos.findIndex(
-    (todo) => todo.id === deleteTodoId.value
-  );
-  if (index !== -1) {
-    todoList.value.todos.splice(index, 1);
-  }
-  deleteTask.value = true;
+
+const latestTodos = ref({
+  todos: "",
+  loadingState: false,
+  loadingStateText: "",
+});
+const deleteTaskConfirm = async () => {
+  latestTodos.value.loadingState = true;
+  latestTodos.value.loadingStateText = "Deleting todo";
+  blurredBg.value = true;
   deleteTaskConfirmation.value = false;
-  blurredBg.value = false;
+  deleteTodo(deleteTodoId.value).then(async () => {
+    latestTodos.value.loadingStateText = "Getting all todos";
+
+    await getAllTodos().then((data) => {
+      blurredBg.value = false;
+      latestTodos.value.todos = data;
+      deleteTask.value = true;
+      blurredBg.value = false;
+      latestTodos.value.loadingState = false;
+    });
+  });
 };
 const cancelDeleteTask = () => {
   deleteTaskConfirmation.value = false;
@@ -156,5 +176,24 @@ const blurbg = () => {
   top: 0;
   background-color: #0000008f;
   backdrop-filter: blur(5px);
+}
+.loader {
+  animation: changeBgColor 7s ease-in;
+  animation-iteration-count: infinite;
+}
+
+@keyframes changeBgColor {
+  0% {
+    background-color: #63a6ff;
+  }
+  25% {
+    background-color: #557aff;
+  }
+  50% {
+    background-color: #7b5aff;
+  }
+  100% {
+    background-color: #b266ff;
+  }
 }
 </style>

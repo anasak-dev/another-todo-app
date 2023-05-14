@@ -14,7 +14,7 @@ export default async function (req, res) {
     const todo = await prisma.todo
       .delete({
         where: {
-          id: parseInt(fields.id),
+          id: fields.id,
         },
       })
       .catch((e) => {

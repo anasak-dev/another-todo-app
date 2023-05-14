@@ -1,10 +1,10 @@
 <template>
   <div
     v-if="loaderActive"
-    class="loader flex items-center justify-center w-full h-full bg-white/80 backdrop-blur-sm top-0 left-0 z-10 fixed"
+    class="loader flex items-center justify-center w-full h-full bg-black/80 backdrop-blur-sm top-0 left-0 z-10 fixed"
   >
     <div
-      class="bg-[#2d2c76] text-white px-4 py-2 rounded-full flex gap-2 items-center"
+      class="bg-white text-black px-4 py-2 rounded-full flex gap-2 items-center"
     >
       <img :src="loader" width="20" class="object-cover h-full" alt="" />
       <h4 class="text-2xl">{{ todoWhatsup }}</h4>
@@ -236,21 +236,34 @@
 </template>
 
 <script setup>
-import { ref, reactive } from "vue";
+import { ref, reactive, watch } from "vue";
 import { uniquieId } from "./uniqueID";
 
 import noTasksIcon from "../assets/tumbleIcon.png";
 import { getAllTodos } from "../../../components/getAllTodos";
 import { postTodoData } from "../../../components/addTodo";
+import loader from "../assets/loader.gif";
+
 const todoList = ref({
-  todos: await getAllTodos(),
+  todos: "",
 });
+await getAllTodos()
+  .then((data) => {
+    todoList.value.todos = data;
+  })
+  .catch((error) => {
+    console.log(error);
+  });
 const loaderActive = ref(false);
 const emits = defineEmits(["openBlurBg", "deleteTask"]);
 const props = defineProps({
   deleteTodo: {
     default: false,
     type: Boolean,
+  },
+  latestTodos: {
+    default: {},
+    type: Object,
   },
 });
 
@@ -278,34 +291,26 @@ const markCompleted = (todoId) => {
       item.status = "in progress";
     }
   });
-  console.log(todoId);
 };
 
 // delete task
 
-const deleteTodo = await ((todoId) =>
-  fetch(`/api/deleteTodo`, {
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    method: "post",
-    body: JSON.stringify({ id: todoId }),
-  }));
-
 const deleteTask = async (todoId) => {
   emits("deleteTask", todoId);
   emits("openBlurBg");
-  deleteTodo(todoId).then(async () => {});
-  // loaderActive.value = true;
-  if (props.deleteTodo != true) {
-    return;
-  }
 };
 
-// add todo
+// watch latest todos
+watch(props.latestTodos, (prop) => {
+  todoList.value.todos = prop.todos;
+  todoWhatsup.value = prop.loadingStateText;
+  loaderActive.value = prop.loadingState;
+});
+
 const addTodo = () => {
   openTodoModal();
+  todoWhatsup.value = "Adding new todo";
+
   loaderActive.value = true;
 
   postTodoData(formData)
@@ -318,7 +323,7 @@ const addTodo = () => {
         loaderActive.value = false;
         formData.description = "";
         formData.title = "";
-        formData.status = "In progress";
+        formData.status = "in progress";
         formData.priority = "low";
         formData.dueDate = "";
       });
