@@ -1,5 +1,16 @@
 <template>
   <div
+    v-if="loaderActive"
+    class="loader flex items-center justify-center w-full h-full bg-white/80 backdrop-blur-sm top-0 left-0 z-10 fixed"
+  >
+    <div
+      class="bg-[#2d2c76] text-white px-4 py-2 rounded-full flex gap-2 items-center"
+    >
+      <img :src="loader" width="20" class="object-cover h-full" alt="" />
+      <h4 class="text-2xl">{{ todoWhatsup }}</h4>
+    </div>
+  </div>
+  <div
     v-show="todoList.todos.length == 0"
     class="flex pt-10 flex-col items-center"
   >
@@ -225,23 +236,16 @@
 </template>
 
 <script setup>
-import { facts } from "./loaderFacts";
 import { ref, reactive } from "vue";
 import { uniquieId } from "./uniqueID";
-const currentFact = ref(0);
-const loaderActive = ref(false);
 
-setInterval(() => {
-  if (loaderActive.value == true) {
-    currentFact.value++;
-    if (currentFact.value >= facts.length) {
-      currentFact.value = 0;
-    }
-  }
-}, 2000);
 import noTasksIcon from "../assets/tumbleIcon.png";
-import { todoList } from "./todos.js";
-
+import { getAllTodos } from "../../../components/getAllTodos";
+import { postTodoData } from "../../../components/addTodo";
+const todoList = ref({
+  todos: await getAllTodos(),
+});
+const loaderActive = ref(false);
 const emits = defineEmits(["openBlurBg", "deleteTask"]);
 const props = defineProps({
   deleteTodo: {
@@ -276,30 +280,53 @@ const markCompleted = (todoId) => {
   });
   console.log(todoId);
 };
+
 // delete task
+
+const deleteTodo = await ((todoId) =>
+  fetch(`/api/deleteTodo`, {
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    method: "post",
+    body: JSON.stringify({ id: todoId }),
+  }));
+
 const deleteTask = async (todoId) => {
   emits("deleteTask", todoId);
   emits("openBlurBg");
-
+  deleteTodo(todoId).then(async () => {});
   // loaderActive.value = true;
   if (props.deleteTodo != true) {
     return;
   }
-  todoWhatsup.value = "Deleting Todo";
 };
 
 // add todo
 const addTodo = () => {
   openTodoModal();
-  const newTodoData = {
-    id: formData.id,
-    description: formData.description,
-    dueDate: formData.dueDate,
-    status: formData.status,
-    priority: formData.priority,
-    title: formData.title,
-  };
-  todoList.value.todos.unshift(newTodoData);
+  loaderActive.value = true;
+
+  postTodoData(formData)
+    .then(async () => {
+      todoWhatsup.value = "Getting all todos";
+
+      await getAllTodos().then((data) => {
+        todoList.value.todos = data;
+        todoModalOpen.value = false;
+        loaderActive.value = false;
+        formData.description = "";
+        formData.title = "";
+        formData.status = "In progress";
+        formData.priority = "low";
+        formData.dueDate = "";
+      });
+    })
+    .catch((e) => {
+      console.log("Error occured" + " " + e);
+    });
+
   formData.title = "";
   formData.description = "";
   formData.dueDate = "";

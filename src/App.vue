@@ -1,6 +1,14 @@
 <script setup>
 import todoBg from "./assets/todoBg.png";
 import { facts } from "./components/loaderFacts";
+const currentFact = ref(0);
+
+setInterval(() => {
+  currentFact.value++;
+  if (currentFact.value >= facts.length) {
+    currentFact.value = 0;
+  }
+}, 2000);
 </script>
 
 <template>
@@ -49,7 +57,7 @@ import { facts } from "./components/loaderFacts";
         </Transition>
       </div>
 
-      <Suspense>
+      <Suspense timeout="0">
         <template #default>
           <ShowAllTodos
             @open-blur-bg="blurbg"
@@ -124,7 +132,7 @@ const blurbg = () => {
   blurredBg.value = !blurredBg.value;
 };
 </script>
-<style scoped>
+<style>
 .fromBottom-enter-active,
 .fromBottom-leave-active {
   transform: translateY(0px);
