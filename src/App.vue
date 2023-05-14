@@ -103,7 +103,7 @@ setInterval(() => {
 <script>
 import { ref } from "vue";
 import ShowAllTodos from "./components/showAllTodos.vue";
-import { getAllTodos } from "../../components/getAllTodos";
+import { getAllTodos } from "./components/getAllTodos";
 const deleteTaskConfirmation = ref(false);
 const deleteTask = ref(false);
 const deleteTodoId = ref("");
