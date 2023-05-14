@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  label input[type="radio"] {
+    @apply appearance-none checked:before:absolute checked:before:content-[''] relative checked:before:w-[10px] checked:before:h-[10px] checked:before:rounded-full checked:before:bg-black checked:before:mx-auto checked:before:left-0 checked:before:right-0 checked:before:my-0 checked:before:top-2/4 checked:before:-translate-y-2/4 w-[20px] h-[20px] rounded-full;
+  }
+  .lowPriority {
+    @apply border-t-4 border-gray-400;
+  }
+  .highPriority {
+    @apply border-t-4 border-red-400;
+  }
+  .averagePriority {
+    @apply border-t-4 border-yellow-400;
+  }
+}
