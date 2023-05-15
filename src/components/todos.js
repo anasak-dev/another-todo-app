@@ -8,7 +8,7 @@ export const todoList = ref({
       dueDate: "13 May 2023",
       description: "Clean my computer table, remove all the trash",
       status: "in progress",
-      priority: "high",
+      priority: "low",
     },
     {
       id: 2,
@@ -24,7 +24,7 @@ export const todoList = ref({
       dueDate: "13 May 2023",
       description: "Clean my computer table, remove all the trash",
       status: "in progress",
-      priority: "high",
+      priority: "average",
     },
     {
       id: 5,
