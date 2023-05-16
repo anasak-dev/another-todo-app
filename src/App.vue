@@ -27,7 +27,7 @@ setInterval(() => {
           flex: deleteTaskConfirmation,
           hidden: !deleteTaskConfirmation,
         }"
-        class="w-full h-full items-center justify-center left-0 top-0 absolute z-10"
+        class="w-full fixed h-full items-center justify-center left-0 top-0 z-10"
       >
         <Transition name="fromBottom">
           <div
@@ -132,7 +132,6 @@ const latestTodos = ref({
 const deleteTaskConfirm = async () => {
   latestTodos.value.loadingState = true;
   latestTodos.value.loadingStateText = "Deleting todo";
-  blurredBg.value = true;
   deleteTaskConfirmation.value = false;
   deleteTodo(deleteTodoId.value).then(async () => {
     latestTodos.value.loadingStateText = "Getting all todos";

@@ -1,4 +1,8 @@
 <template>
+  <!-- not sure why filteredTodo don't work if I don't add props on top , check laterver-->
+  <pre class="hidden"> {{ latestTodos }}</pre>
+  <!-- not sure why filteredTodo don't work if I don't add props on top -->
+
   <div
     v-if="filteredTodo.length > 1"
     class="fixed top-5 bg-white px-4 rounded-full cursor-pointer hover:scale-95 transition-all py-1"
@@ -68,6 +72,7 @@
                   }"
                   class="markAsCompleted bg-transparent relative appearance-none w-[40px] h-[40px] rounded-full border-2"
                   @click="markCompleted(todo.id)"
+                  @change="updateTodo(todo.id, todo.status)"
                   :checked="todo.status == 'completed'"
                   :style="{ '--backgroundChecked': `url(${iconCompleted})` }"
                 />
@@ -206,7 +211,7 @@
   <Transition name="fromBottom">
     <div
       v-if="todoModalOpen"
-      class="inner transition-all fixed z-10 bottom-4 py-4 px-4 w-full max-w-[90%] flex flex-col gap-4 mx-auto my-0 left-0 right-0 rounded-md bg-white"
+      class="inner transition-all fixed z-10 bottom-4 w-full max-w-[90%] flex flex-col gap-4 mx-auto my-0 left-0 right-0 rounded-md bg-white"
       :class="{
         'z-fr ': !todoModalOpen,
         'one-fr ': todoModalOpen,
@@ -216,9 +221,11 @@
         @submit.prevent="addTodo"
         class="max-w-[420px] w-full my-0 mx-auto overflow-hidden py-4 px-4 flex flex-col gap-8"
       >
-        <h4 class="text-2xl text-black text-center">Add task</h4>
+        <div class="flex flex-col gap-2">
+          <h4 class="text-2xl text-black text-center">Add task</h4>
 
-        <hr />
+          <hr />
+        </div>
         <div class="flex flex-col gap-2">
           <label for="title" class="text-lg tracking-wide text-black"
             >Title</label
@@ -331,6 +338,7 @@ import noTasksIcon from "../assets/tumbleIcon.png";
 import { getAllTodos } from "./getAllTodos";
 import { postTodoData } from "./addTodo";
 import loader from "../assets/loader.gif";
+import { updateTodoData } from "./updateTodo";
 import iconCompleted from "../assets/icon-completed.svg";
 const icons = import.meta.glob("../assets/icon-*.svg", {
   as: "raw",
@@ -343,12 +351,23 @@ const openFilterModal = () => {
   filterModalOpen.value = !filterModalOpen.value;
   emits("openBlurBg");
 };
+
+const updateTodo = (id, status) => {
+  const updateTaskData = { id, status };
+  updateTodoData(updateTaskData)
+    .then((data) => {
+      console.log(data);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+};
 // commenting to trigger vercel deployment
 const todoList = ref({
   todos: await getAllTodos(),
 });
 
-const filteredTodo = computed(() => {
+const filteredTodo = await computed(() => {
   return todoList.value.todos.sort((a, b) => {
     if (a.priority === selectedFilter.value) {
       return -1; // `a` comes before `b`
