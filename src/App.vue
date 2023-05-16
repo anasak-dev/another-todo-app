@@ -125,7 +125,7 @@ const openDeleteTaskModal = (id) => {
 };
 
 const latestTodos = ref({
-  todos: "",
+  todos: [{}],
   loadingState: false,
   loadingStateText: "",
 });
@@ -135,12 +135,10 @@ const deleteTaskConfirm = async () => {
   deleteTaskConfirmation.value = false;
   deleteTodo(deleteTodoId.value).then(async () => {
     latestTodos.value.loadingStateText = "Getting all todos";
-
     await getAllTodos().then((data) => {
       blurredBg.value = false;
       latestTodos.value.todos = data;
       deleteTask.value = true;
-      blurredBg.value = false;
       latestTodos.value.loadingState = false;
       scrollToTop();
     });

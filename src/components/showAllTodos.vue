@@ -1,14 +1,11 @@
 <template>
-  <!-- not sure why filteredTodo don't work if I don't add props on top , check laterver-->
-  <pre class="hidden"> {{ latestTodos }}</pre>
-  <!-- not sure why filteredTodo don't work if I don't add props on top -->
-
   <div
     v-if="filteredTodo.length > 1"
-    class="fixed top-5 bg-white px-4 rounded-full cursor-pointer hover:scale-95 transition-all py-1"
+    :class="{ 'z-10': !todoModalOpen }"
+    class="fixed top-5 bg-black w-[30px] h-[30px] flex items-center justify-center rounded-full cursor-pointer hover:scale-95 transition-all"
     @click="openFilterModal"
   >
-    Sort By
+    <i v-html="iconFilter" />
   </div>
   <div
     v-if="loaderActive"
@@ -102,7 +99,7 @@
 
             <hr class="w-full bg-gray-50" />
 
-            <div class="flex gap-x-2">
+            <div class="flex gap-2 w-full flex-wrap">
               <div
                 class="priority rounded-full py-1 px-4 text-sm"
                 :class="{
@@ -113,7 +110,9 @@
               >
                 {{ todo.priority }}
               </div>
-              <div class="status rounded-full py-1 px-4 bg-green-400 text-sm">
+              <div
+                class="status rounded-full py-1 px-4 bg-green-400 text-sm w-fit"
+              >
                 {{ todo.status }}
               </div>
             </div>
@@ -345,6 +344,8 @@ const icons = import.meta.glob("../assets/icon-*.svg", {
   eager: true,
 });
 const iconDelete = icons["../assets/icon-delete.svg"];
+const iconFilter = icons["../assets/icon-filter.svg"];
+
 const filterModalOpen = ref(false);
 const selectedFilter = ref("high");
 const openFilterModal = () => {
