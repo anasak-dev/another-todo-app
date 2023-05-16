@@ -104,6 +104,8 @@ setInterval(() => {
 import { ref } from "vue";
 import ShowAllTodos from "./components/showAllTodos.vue";
 import { getAllTodos } from "./components/getAllTodos";
+import { scrollToTop } from "./components/scrollTop";
+
 const deleteTaskConfirmation = ref(false);
 const deleteTask = ref(false);
 const deleteTodoId = ref("");
@@ -141,6 +143,7 @@ const deleteTaskConfirm = async () => {
       deleteTask.value = true;
       blurredBg.value = false;
       latestTodos.value.loadingState = false;
+      scrollToTop();
     });
   });
 };

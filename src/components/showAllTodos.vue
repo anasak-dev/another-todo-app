@@ -1,5 +1,12 @@
 <template>
   <div
+    v-if="filteredTodo.length > 1"
+    class="fixed top-5 bg-white px-4 rounded-full cursor-pointer hover:scale-95 transition-all py-1"
+    @click="openFilterModal"
+  >
+    Sort By
+  </div>
+  <div
     v-if="loaderActive"
     class="loader flex items-center justify-center w-full h-full bg-black/80 backdrop-blur-sm top-0 left-0 z-10 fixed"
   >
@@ -11,7 +18,7 @@
     </div>
   </div>
   <div
-    v-show="todoList.todos.length == 0"
+    v-show="filteredTodo.length == 0"
     class="flex pt-10 flex-col items-center"
   >
     <img :src="noTasksIcon" alt="" />
@@ -20,7 +27,7 @@
       add some tasks
     </h4>
   </div>
-  <div class="h-[100vh]">
+  <div>
     <div class="todo-list">
       <TransitionGroup name="todos" mode="out-in">
         <div
@@ -31,7 +38,7 @@
             highPriority: todo.priority == 'high',
             averagePriority: todo.priority == 'average',
           }"
-          v-for="todo in todoList.todos"
+          v-for="todo in filteredTodo"
           :key="todo.id"
         >
           <div class="px-4 py-4 flex flex-col gap-5">
@@ -50,6 +57,8 @@
                 <input
                   type="checkbox"
                   :class="{
+                    completed: todo.status == 'completed',
+
                     'border-gray-400 checked:bg-gray-400':
                       todo.priority == 'low',
                     'border-red-400 checked:bg-red-400':
@@ -57,15 +66,17 @@
                     'border-yellow-400 checked:bg-yellow-400':
                       todo.priority == 'average',
                   }"
-                  class="markAsCompleted bg-transparent appearance-none w-[40px] h-[40px] rounded-full border-2"
+                  class="markAsCompleted bg-transparent relative appearance-none w-[40px] h-[40px] rounded-full border-2"
                   @click="markCompleted(todo.id)"
+                  :checked="todo.status == 'completed'"
+                  :style="{ '--backgroundChecked': `url(${iconCompleted})` }"
                 />
                 <button
                   v-if="todo.status == 'completed'"
                   class="text-xl font-sans hover:before:content-[''] hover:before:absolute hover:before:w-full hover:before:h-full relative hover:before:scale-125 hover:scale-90 hover:before:rounded-full hover:before:border hover:before:border-black transition flex items-center justify-center font-light bg-black text-white rounded-full w-[40px] h-[40px]"
                   @click="deleteTask(todo.id)"
                 >
-                  x
+                  <i v-html="iconDelete"></i>
                 </button>
               </div>
             </div>
@@ -106,21 +117,96 @@
       </TransitionGroup>
     </div>
   </div>
+
+  <Transition name="fromBottom">
+    <!-- Filter by priority -->
+    <div
+      :class="{
+        'z-10': filterModalOpen,
+      }"
+      v-if="filterModalOpen"
+      class="fixed z-10 bottom-4 py-4 px-4 w-full max-w-[90%] flex flex-col gap-4 mx-auto my-0 left-0 right-0 rounded-md todo-add-btn bg-white"
+    >
+      <h4 class="text-2xl text-black text-center">Sort by</h4>
+      <hr />
+      <div class="flex flex-col gap-2">
+        <label for="title" class="text-lg tracking-wide text-black"
+          >Priority</label
+        >
+
+        <div class="flex gap-2">
+          <label class="flex items-center gap-1">
+            <input
+              type="radio"
+              v-model="selectedFilter"
+              @change="openFilterModal"
+              name="priority"
+              value="high"
+              class="bg-red-400"
+            />
+            <span>High</span></label
+          >
+          <label class="flex items-center gap-1">
+            <input
+              type="radio"
+              v-model="selectedFilter"
+              @change="openFilterModal"
+              name="priority"
+              value="average"
+              class="bg-yellow-400"
+            />
+            Average
+          </label>
+          <label class="flex items-center gap-1">
+            <input
+              type="radio"
+              v-model="selectedFilter"
+              @change="openFilterModal"
+              name="priority"
+              value="low"
+              class="bg-gray-400"
+            />
+            Low
+          </label>
+        </div>
+      </div>
+      <div class="flex">
+        <input
+          type="submit"
+          value="Add Filter"
+          name="Add new Todo"
+          class="text-lg hover:opacity-90 cursor-pointer bg-[#2650E8] rounded-md text-white px-6 py-2 w-full"
+        />
+        <input
+          type="button"
+          value="Cancel"
+          @click="openFilterModal"
+          class="text-lg bg-transparent basis-1/4 rounded-full text-black px-6 py-2 w-full"
+        />
+      </div>
+    </div>
+  </Transition>
+  <!-- Filter by priority -->
+
   <div
     :class="{
       'z-10': todoModalOpen,
     }"
-    class="fixed bottom-4 w-full max-w-[90%] mx-auto my-0 left-0 grid right-0 rounded-md todo-add-btn bg-white"
+    class="fixed bottom-4 max-w-[90%] mx-auto my-0 left-0 grid right-0 rounded-full p-2 w-fit todo-add-btn bg-white"
   >
     <button
       :class="{ 'shadow-3xl': !todoModalOpen }"
-      class="text-2xl bg-white text-black px-6 rounded-md py-4 w-full"
+      class="text-2xl bg-[#2650E8] hover:scale-95 transition-all cursor-pointer w-[50px] h-[50px] mx-auto my-0 rounded-full text-white flex justify-center items-center"
       @click="openTodoModal"
     >
-      Add todo
+      +
     </button>
+  </div>
+  <!-- Add task form -->
+  <Transition name="fromBottom">
     <div
-      class="inner grid transition-all"
+      v-if="todoModalOpen"
+      class="inner transition-all fixed z-10 bottom-4 py-4 px-4 w-full max-w-[90%] flex flex-col gap-4 mx-auto my-0 left-0 right-0 rounded-md bg-white"
       :class="{
         'z-fr ': !todoModalOpen,
         'one-fr ': todoModalOpen,
@@ -128,9 +214,10 @@
     >
       <form
         @submit.prevent="addTodo"
-        v-show="todoModalOpen"
         class="max-w-[420px] w-full my-0 mx-auto overflow-hidden py-4 px-4 flex flex-col gap-8"
       >
+        <h4 class="text-2xl text-black text-center">Add task</h4>
+
         <hr />
         <div class="flex flex-col gap-2">
           <label for="title" class="text-lg tracking-wide text-black"
@@ -232,28 +319,47 @@
         </div>
       </form>
     </div>
-  </div>
+    <!-- Add task form -->
+  </Transition>
 </template>
 
 <script setup>
-import { ref, reactive, watch } from "vue";
+import { ref, reactive, watch, computed } from "vue";
 import { uniquieId } from "./uniqueID";
-
+import { scrollToTop } from "./scrollTop";
 import noTasksIcon from "../assets/tumbleIcon.png";
 import { getAllTodos } from "./getAllTodos";
 import { postTodoData } from "./addTodo";
 import loader from "../assets/loader.gif";
+import iconCompleted from "../assets/icon-completed.svg";
+const icons = import.meta.glob("../assets/icon-*.svg", {
+  as: "raw",
+  eager: true,
+});
+const iconDelete = icons["../assets/icon-delete.svg"];
+const filterModalOpen = ref(false);
+const selectedFilter = ref("high");
+const openFilterModal = () => {
+  filterModalOpen.value = !filterModalOpen.value;
+  emits("openBlurBg");
+};
 // commenting to trigger vercel deployment
 const todoList = ref({
   todos: await getAllTodos(),
 });
-// await getAllTodos()
-//   .then((data) => {
-//     todoList.value.todos = data;
-//   })
-//   .catch((error) => {
-//     console.log(error);
-//   });
+
+const filteredTodo = computed(() => {
+  return todoList.value.todos.sort((a, b) => {
+    if (a.priority === selectedFilter.value) {
+      return -1; // `a` comes before `b`
+    } else if (b.priority === selectedFilter.value) {
+      return 1; // `b` comes before `a`
+    } else {
+      return 0; // no change in order
+    }
+  });
+});
+
 const loaderActive = ref(false);
 const emits = defineEmits(["openBlurBg", "deleteTask"]);
 const props = defineProps({
@@ -326,6 +432,7 @@ const addTodo = () => {
         formData.status = "in progress";
         formData.priority = "low";
         formData.dueDate = "";
+        scrollToTop();
       });
     })
     .catch((e) => {
@@ -353,7 +460,20 @@ const addTodo = () => {
   grid-template-rows: 1fr;
 }
 /* transition on height auto https://www.youtube.com/watch?v=B_n4YONte5A */
-
+.markAsCompleted.completed:after {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  content: "";
+  background: var(--backgroundChecked);
+  background-repeat: no-repeat;
+  background-size: cover;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  top: 50%;
+  transform: translateY(-50%);
+}
 .todo-list {
   display: flex;
   flex-flow: column;
