@@ -5,15 +5,17 @@
 
 ### This is a simple Todo App built using Vue js and styled using Tailwindcss, the design itself is created in figma.
 
+
+
+
 Vue app live at https://vue-supa-prisma.vercel.app/
 #### **(App is designed to viewed best on mobile devices as shown in demo below)
 
 ## Demo of data saved in local storage
-<video src="https://raw.githubusercontent.com/anasak-dev/another-todo-app/master/data-in-localstorage.mp4" width="100%" muted autoplay></video>
+https://github.com/anasak-dev/another-todo-app/assets/14008858/9a4ed285-b52c-46ef-a342-401926360a57
 
 ## Demo of data saved in Supabase (Postgresql)
-
-https://raw.githubusercontent.com/anasak-dev/another-todo-app/master/data-in-server.mp4
+https://github.com/anasak-dev/another-todo-app/assets/14008858/b242066f-9e61-4309-926b-8f4784d99359
 
 
 ## Features
