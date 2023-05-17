@@ -9,13 +9,11 @@ Vue app live at https://vue-supa-prisma.vercel.app/
 #### **(App is designed to viewed best on mobile devices as shown in demo below)
 
 ## Demo of data saved in local storage
-<video src="https://i.imgur.com/KEtPGyi.mp4" width="100%" muted autoplay></video>
+https://raw.githubusercontent.com/anasak-dev/another-todo-app/master/data-in-localstorage.mp4
 
 ## Demo of data saved in Supabase (Postgresql)
 
-<video src="https://i.imgur.com/DXFoGi6.mp4" width="100%" muted autoplay></video>
-
-
+https://raw.githubusercontent.com/anasak-dev/another-todo-app/master/data-in-server.mp4
 
 ## Features
 
