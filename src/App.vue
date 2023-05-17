@@ -103,22 +103,13 @@ setInterval(() => {
 <script>
 import { ref } from "vue";
 import ShowAllTodos from "./components/showAllTodos.vue";
-import { getAllTodos } from "./components/getAllTodos";
 import { scrollToTop } from "./components/scrollTop";
 
 const deleteTaskConfirmation = ref(false);
 const deleteTask = ref(false);
 const deleteTodoId = ref("");
 const blurredBg = ref(false);
-const deleteTodo = await ((todoId) =>
-  fetch(`/api/deleteTodo`, {
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    method: "post",
-    body: JSON.stringify({ id: todoId }),
-  }));
+
 const openDeleteTaskModal = (id) => {
   deleteTaskConfirmation.value = true;
   deleteTodoId.value = id;
@@ -130,19 +121,25 @@ const latestTodos = ref({
   loadingStateText: "",
 });
 const deleteTaskConfirm = async () => {
+  //
+  latestTodos.value.todos = JSON.parse(localStorage.getItem("todos"));
+
+  const index = latestTodos.value.todos.findIndex(
+    (todo) => todo.id === deleteTodoId.value
+  );
+  if (index !== -1) {
+    latestTodos.value.todos.splice(index, 1);
+  }
+  deleteTask.value = true;
+  deleteTaskConfirmation.value = false;
+  blurredBg.value = false;
+  //
   latestTodos.value.loadingState = true;
   latestTodos.value.loadingStateText = "Deleting todo";
   deleteTaskConfirmation.value = false;
-  deleteTodo(deleteTodoId.value).then(async () => {
-    latestTodos.value.loadingStateText = "Getting all todos";
-    await getAllTodos().then((data) => {
-      blurredBg.value = false;
-      latestTodos.value.todos = data;
-      deleteTask.value = true;
-      latestTodos.value.loadingState = false;
-      scrollToTop();
-    });
-  });
+  localStorage.setItem("todos", JSON.stringify(latestTodos.value.todos));
+  latestTodos.value.loadingState = false;
+  scrollToTop();
 };
 const cancelDeleteTask = () => {
   deleteTaskConfirmation.value = false;

@@ -1,12 +1,83 @@
 <template>
   <div
-    v-if="filteredTodo.length > 1"
+    v-if="filteredTodo && filteredTodo.length > 1"
     :class="{ 'z-10': !todoModalOpen }"
     class="fixed top-5 bg-black w-[30px] h-[30px] flex items-center justify-center rounded-full cursor-pointer hover:scale-95 transition-all"
     @click="openFilterModal"
   >
     <i v-html="iconFilter" />
   </div>
+
+  <div
+    v-if="creditsModal"
+    class="flex justify-between gap-4 w-full h-full flex-col bg-black backdrop-blur-sm top-0 left-0 z-10 fixed px-6 py-10"
+  >
+    <div
+      class="fixed top-4 right-4 text-white bg-white/10 p-2 rounded-full cursor-pointer hover:bg-white/30"
+      @click="creditsModal = false"
+    >
+      <i v-html="icons['../assets/icon-close.svg']"></i>
+    </div>
+    <div class="flex flex-col gap-6">
+      <div class="text-white flex gap-2 flex-col w-full">
+        <h3 class="font-bold text-xl">Frontend</h3>
+
+        <div class="flex flex-col gap-2">
+          <h4>Vue js</h4>
+          <h4>Tailwindcss</h4>
+        </div>
+      </div>
+      <hr class="border-1 border-white/20" />
+
+      <div class="text-white flex gap-2 flex-col w-full">
+        <h3 class="font-bold text-xl">Backend</h3>
+
+        <div class="flex flex-col gap-2">
+          <h4>Postgresql(Supabase)</h4>
+          <h4>Prisma(ORM)</h4>
+          <h4>Vercel Serverless(API)</h4>
+        </div>
+      </div>
+      <hr class="border-1 border-white/20" />
+
+      <div class="text-white flex gap-2 flex-col w-full">
+        <h3 class="font-bold text-xl">Design</h3>
+
+        <div class="flex flex-col gap-2">
+          <h4>Figma</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer flex flex-col w-fit gap-2">
+      <div class="text-white flex gap-2 items-center w-fit">
+        <h3 class="text-xl">built with</h3>
+        <i v-html="iconHeart"></i>
+        <h3 class="text-xl">
+          by
+          <a
+            href="https://www.linkedin.com/in/anasniazi/"
+            class="underline font-bold"
+            >anasniazi</a
+          >
+        </h3>
+      </div>
+      <hr class="border-1 border-white/20" />
+
+      <div class="text-white flex gap-2 items-center w-fit">
+        <h3 class="text-xl">
+          code available on
+          <a
+            href="https://github.com/anasak-dev/another-todo-app/"
+            class="font-bold underline"
+          >
+            github
+          </a>
+        </h3>
+      </div>
+    </div>
+  </div>
+
   <div
     v-if="loaderActive"
     class="loader flex items-center justify-center w-full h-full bg-black/80 backdrop-blur-sm top-0 left-0 z-10 fixed"
@@ -196,7 +267,7 @@
     :class="{
       'z-10': todoModalOpen,
     }"
-    class="fixed bottom-4 max-w-[90%] mx-auto my-0 left-0 grid right-0 rounded-full p-2 w-fit todo-add-btn bg-white"
+    class="fixed bottom-14 max-w-[90%] mx-auto my-0 left-0 grid right-0 rounded-full p-2 w-fit todo-add-btn bg-white"
   >
     <button
       :class="{ 'shadow-3xl': !todoModalOpen }"
@@ -206,6 +277,7 @@
       +
     </button>
   </div>
+
   <!-- Add task form -->
   <Transition name="fromBottom">
     <div
@@ -325,8 +397,15 @@
         </div>
       </form>
     </div>
+
     <!-- Add task form -->
   </Transition>
+  <h4
+    @click="creditsModal = true"
+    class="text-sm bg-black rounded-full w-fit cursor-pointer hover:scale-95 transition-all fixed bottom-2 left-0 right-0 mx-auto my-0 text-black/80 text-center px-6 py-2 text-white"
+  >
+    Credits
+  </h4>
 </template>
 
 <script setup>
@@ -334,17 +413,17 @@ import { ref, reactive, watch, computed } from "vue";
 import { uniquieId } from "./uniqueID";
 import { scrollToTop } from "./scrollTop";
 import noTasksIcon from "../assets/tumbleIcon.png";
-import { getAllTodos } from "./getAllTodos";
-import { postTodoData } from "./addTodo";
 import loader from "../assets/loader.gif";
-import { updateTodoData } from "./updateTodo";
 import iconCompleted from "../assets/icon-completed.svg";
+const creditsModal = ref(false);
 const icons = import.meta.glob("../assets/icon-*.svg", {
   as: "raw",
   eager: true,
 });
 const iconDelete = icons["../assets/icon-delete.svg"];
 const iconFilter = icons["../assets/icon-filter.svg"];
+const iconHeart = icons["../assets/icon-heart.svg"];
+const iconClose = icons["../assets/icon-close.svg"];
 
 const filterModalOpen = ref(false);
 const selectedFilter = ref("high");
@@ -354,32 +433,36 @@ const openFilterModal = () => {
 };
 
 const updateTodo = (id, status) => {
-  const updateTaskData = { id, status };
-  updateTodoData(updateTaskData)
-    .then((data) => {
-      console.log(data);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-};
-// commenting to trigger vercel deployment
-const todoList = ref({
-  todos: await getAllTodos(),
-});
-
-const filteredTodo = await computed(() => {
-  return todoList.value.todos.sort((a, b) => {
-    if (a.priority === selectedFilter.value) {
-      return -1; // `a` comes before `b`
-    } else if (b.priority === selectedFilter.value) {
-      return 1; // `b` comes before `a`
-    } else {
-      return 0; // no change in order
+  todoList.value.todos = JSON.parse(localStorage.getItem("todos"));
+  todoList.value.todos.forEach((item) => {
+    if (item.id == id) {
+      item.status = status;
     }
   });
+  localStorage.setItem("todos", JSON.stringify(todoList.value.todos));
+};
+// commenting to trigger vercel deployment
+const todoLocal = () => {
+  return JSON.parse(localStorage.getItem("todos"))
+    ? JSON.parse(localStorage.getItem("todos"))
+    : localStorage.setItem("todos", "[]");
+};
+const todoList = ref({
+  todos: todoLocal(),
 });
-
+const filteredTodo = computed(() => {
+  if (todoList.value.todos) {
+    return todoList.value.todos.sort((a, b) => {
+      if (a.priority === selectedFilter.value) {
+        return -1; // `a` comes before `b`
+      } else if (b.priority === selectedFilter.value) {
+        return 1; // `b` comes before `a`
+      } else {
+        return 0; // no change in order
+      }
+    });
+  }
+});
 const loaderActive = ref(false);
 const emits = defineEmits(["openBlurBg", "deleteTask"]);
 const props = defineProps({
@@ -435,30 +518,23 @@ watch(props.latestTodos, (prop) => {
 
 const addTodo = () => {
   openTodoModal();
-  todoWhatsup.value = "Adding new todo";
-
-  loaderActive.value = true;
-
-  postTodoData(formData)
-    .then(async () => {
-      todoWhatsup.value = "Getting all todos";
-
-      await getAllTodos().then((data) => {
-        todoList.value.todos = data;
-        todoModalOpen.value = false;
-        loaderActive.value = false;
-        formData.description = "";
-        formData.title = "";
-        formData.status = "in progress";
-        formData.priority = "low";
-        formData.dueDate = "";
-        scrollToTop();
-      });
-    })
-    .catch((e) => {
-      console.log("Error occured" + " " + e);
-    });
-
+  try {
+    const b = JSON.parse(localStorage.getItem("todos"));
+    b.push(formData);
+    const newTodoData = {
+      id: formData.id,
+      description: formData.description,
+      dueDate: formData.dueDate,
+      status: formData.status,
+      priority: formData.priority,
+      title: formData.title,
+    };
+    todoList.value.todos.unshift(newTodoData);
+    localStorage.setItem("todos", JSON.stringify(b));
+    scrollToTop();
+  } catch (error) {
+    console.log(error);
+  }
   formData.title = "";
   formData.description = "";
   formData.dueDate = "";
@@ -493,6 +569,11 @@ const addTodo = () => {
   margin: 0 auto;
   top: 50%;
   transform: translateY(-50%);
+}
+svg {
+  min-width: 20px;
+  min-height: 20px;
+  object-fit: cover;
 }
 .todo-list {
   display: flex;
